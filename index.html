@@ -87,17 +87,17 @@ h1{
 // ==== CONFIGURATION FIREBASE ====
 // Colle EXACTEMENT la même config que dans roulette-retro.html ici.
 const firebaseConfig = {
-  apiKey: "TON_API_KEY",
-  authDomain: "TON_PROJET.firebaseapp.com",
-  databaseURL: "https://TON_PROJET-default-rtdb.firebaseio.com",
-  projectId: "TON_PROJET"
+ apiKey: "AIzaSyB9ZPZY-90czFRtBs6wt_yhemXYJ6xcOT4",
+  authDomain: "roulette-retro.firebaseapp.com",
+  databaseURL: "https://roulette-retro-default-rtdb.firebaseio.com",
+  projectId: "roulette-retro"
 };
 
 const listEl = document.getElementById('list');
 
 function render(entries){
   if(entries.length === 0){
-    listEl.innerHTML = '<div class="empty">Aucun jeu ajouté pour l\\'instant — utilise tes points de chaîne !</div>';
+    listEl.innerHTML = "<div class=\"empty\">Aucun jeu ajouté pour l'instant — utilise tes points de chaîne !</div>";
     return;
   }
   listEl.innerHTML = entries.map((e, i) => `
