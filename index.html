@@ -87,7 +87,7 @@ h1{
 // ==== CONFIGURATION FIREBASE ====
 // Colle EXACTEMENT la même config que dans roulette-retro.html ici.
 const firebaseConfig = {
- apiKey: "AIzaSyB9ZPZY-90czFRtBs6wt_yhemXYJ6xcOT4",
+  apiKey: "AIzaSyB9ZPZY-90czFRtBs6wt_yhemXYJ6xcOT4",
   authDomain: "roulette-retro.firebaseapp.com",
   databaseURL: "https://roulette-retro-default-rtdb.firebaseio.com",
   projectId: "roulette-retro"
@@ -95,20 +95,32 @@ const firebaseConfig = {
 
 const listEl = document.getElementById('list');
 
-function render(entries){
-  if(entries.length === 0){
+function parseEntry(raw){
+  // Chaque ligne de Roulette-liste.txt est "Nom du jeu Pseudo" (pas de séparateur fixe).
+  // Les pseudos Twitch ne contiennent jamais d'espace, donc le dernier mot = le pseudo.
+  const match = raw.match(/^(.*\S)\s+(\S+)$/);
+  if(match){
+    return { game: match[1], viewer: match[2] };
+  }
+  return { game: raw, viewer: null };
+}
+
+function render(names){
+  if(names.length === 0){
     listEl.innerHTML = "<div class=\"empty\">Aucun jeu ajouté pour l'instant — utilise tes points de chaîne !</div>";
     return;
   }
-  listEl.innerHTML = entries.map((e, i) => `
+  listEl.innerHTML = names.map((raw, i) => {
+    const { game, viewer } = parseEntry(raw);
+    return `
     <li>
       <span class="slot-num">${String(i+1).padStart(2,'0')}</span>
       <span class="game-info">
-        <div class="game-name">${escapeHtml(e.game)}</div>
-        <div class="viewer-name">proposé par ${escapeHtml(e.viewer)}</div>
+        <div class="game-name">${escapeHtml(game)}</div>
+        ${viewer ? `<div class="viewer-name">proposé par ${escapeHtml(viewer)}</div>` : ''}
       </span>
-    </li>
-  `).join('');
+    </li>`;
+  }).join('');
 }
 
 function escapeHtml(str){
@@ -121,11 +133,12 @@ if(firebaseConfig.apiKey === "TON_API_KEY"){
   listEl.innerHTML = '<div class="empty">Configuration Firebase manquante dans ce fichier.</div>';
 }else{
   firebase.initializeApp(firebaseConfig);
+  // RA_Roulette.py pousse un simple tableau JSON de noms sous /gameQueue (voir _push_to_firebase).
   const dbRef = firebase.database().ref('gameQueue');
   dbRef.on('value', (snapshot) => {
-    const val = snapshot.val() || {};
-    const entries = Object.keys(val).map(key => ({ id: key, viewer: val[key].viewer, game: val[key].game }));
-    render(entries);
+    const val = snapshot.val();
+    const names = Array.isArray(val) ? val.filter(Boolean) : (val ? Object.values(val).filter(Boolean) : []);
+    render(names);
   }, (err) => {
     listEl.innerHTML = '<div class="empty">Impossible de charger la liste en direct.</div>';
     console.error(err);
